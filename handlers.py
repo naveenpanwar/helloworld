@@ -30,54 +30,54 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kw):
         return self.write(self.render_str(template, **kw))
 
-months = ['January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July',
-          'August',
-          'September',
-          'October',
-          'November',
-          'December']
-
-month_abbs = dict( (m[:3].lower(), m ) for m in months )
-
 #########################################################################################
 #                           Validating User Input
 #########################################################################################
+class Validators():
+    months = ['January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December']
 
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-def valid_username(username):
-    return username and USER_RE.match(username)
+    month_abbs = dict( (m[:3].lower(), m ) for m in months )
 
-PASS_RE = re.compile(r"^.{3,20}$")
-def valid_password(password):
-    return password and PASS_RE.match(password)
+    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+    def valid_username(self, username):
+        return username and USER_RE.match(username)
 
-EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
-def valid_email(email):
-    return not email or EMAIL_RE.match(email)
+    PASS_RE = re.compile(r"^.{3,20}$")
+    def valid_password(self, password):
+        return password and PASS_RE.match(password)
 
-# validation functions unit-1
-def val_month(month):
-    if month:
-        short_m = month[:3].lower()
-        return month_abbs.get( short_m )
+    EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
+    def valid_email(self, email):
+        return not email or EMAIL_RE.match(email)
 
-def val_day(day):
-    if day and day.isdigit():
-        day = int(day)
-        if day > 0 and day <= 31:
-            return day
+    # validation functions unit-1
+    def val_month(self, month):
+        if month:
+            short_m = month[:3].lower()
+            return self.month_abbs.get( short_m )
 
-def val_year(year):
-    if year and year.isdigit():
-        year = int(year)
-        if year > 1900 and year <= 2020:
-            return year
+    def val_day(self, day):
+        if day and day.isdigit():
+            day = int(day)
+            if day > 0 and day <= 31:
+                return day
 
-def escape_html(s):
-    return cgi.escape(s, quote=True)
+    def val_year(self, year):
+        if year and year.isdigit():
+            year = int(year)
+            if year > 1900 and year <= 2020:
+                return year
+
+    def escape_html(self, s):
+        return cgi.escape(s, quote=True)
