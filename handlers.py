@@ -79,6 +79,5 @@ def val_year(year):
         if year > 1900 and year <= 2020:
             return year
 
-
 def escape_html(s):
     return cgi.escape(s, quote=True)

@@ -33,9 +33,9 @@ class MainPage(Handler):
 
         if not ( day and month and year ):
             return self.write_form("Something Went Wrong", 
-                                    escape_html(user_month),
-                                    escape_html(user_day),
-                                    escape_html(user_year),
+                                    handlers.escape_html(user_month),
+                                    handlers.escape_html(user_day),
+                                    handlers.escape_html(user_year),
                                     )
         else:
             self.redirect("/thanks")
@@ -75,7 +75,7 @@ class Rot13Handler(Handler):
                     rotted+=chr(rotord)
             else:
                 rotted+=l
-        return self.render( 'rot13form.html', message=escape_html(rotted) )
+        return self.render( 'rot13form.html', message=handlers.escape_html(rotted) )
 
 class SignupHandler(Handler):
     def write_form(self, 
@@ -132,12 +132,12 @@ class SignupHandler(Handler):
             email_error = ""
 
         if not status:
-            return self.write_form( escape_html(username), 
-                                    escape_html(username_error),
-                                    escape_html(password_error),
-                                    escape_html(verify_error),
-                                    escape_html(email),
-                                    escape_html(email_error),
+            return self.write_form( handlers.escape_html(username), 
+                                    handlers.escape_html(username_error),
+                                    handlers.escape_html(password_error),
+                                    handlers.escape_html(verify_error),
+                                    handlers.escape_html(email),
+                                    handlers.escape_html(email_error),
                                     )
         else:
             self.redirect("/unit2/welcome?username=" + username)
