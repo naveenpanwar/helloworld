@@ -1,0 +1,13 @@
+application: intense-idea-125805
+version: alpha-001
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /.*
+  script: urls.app
+
+libraries:
+- name: jinja2
+  version: latest

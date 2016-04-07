@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}
+	SIGNUP
+{% endblock %}
+{% block body %}
+	<form method='post' >
+				SignUp
+				<table>
+					<tr>
+						<td>
+							<input type='text' name='username' placeholder='Username' value="{{ username }}">
+						</td>
+						<td>
+							<p style='color: red; font-weight: bold;'> {{ username_error }} </p>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type='password' name='password' placeholder='Password' value="">
+						</td>
+						<td>
+							<p style='color: red; font-weight: bold;'> {{ password_error }} </p>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type='password' name='verify' placeholder='verify' value="">
+						</td>
+						<td>
+							<p style='color: red; font-weight: bold;'> {{ verify_error }} </p>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input type='text' name='email' placeholder='Email' value="{{ email }}">
+						</td>
+						<td>
+							<p style='color: red; font-weight: bold;'> {{ email_error }} </p>
+						</td>
+					</tr>
+				</table>
+				<br>
+				<input type='submit'>
+	</form>
+{% endblock %}

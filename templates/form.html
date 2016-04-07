@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}
+	CS253
+{% endblock %}
+{% block body %}
+<form method='post' >
+			What is your Birthday
+			<br>
+			<input type='text' name='month' placeholder='Month' value="{{month }}">
+			<input type='text' name='day' placeholder='Day' value="{{ day }}">
+			<input type='text' name='year' placeholder='Year' value="{{ year }}">
+			<br>
+			<div style='color: red'>{{ error }}</div>
+			<br>
+			<input type='submit'>
+</form>
+{% endblock %}

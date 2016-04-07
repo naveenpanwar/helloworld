@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}
+	Unit 3 Blog
+{% endblock %}
+{% block body %}
+	<h1> Blog Unit 3 </h1>
+	{% for p in posts %}
+		{{ p.render() | safe }}
+	{% endfor %}
+{% endblock %}

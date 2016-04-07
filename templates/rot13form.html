@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}
+	ROT-13
+{% endblock %}
+{% block body %}
+	<form method='post' >
+				<h1>Enter some text to rot-13</h1>
+				<br>
+				<textarea rows='15' cols='50' name='text' placeholder='Message'>{{ message }}</textarea>
+				<br>
+				<br>
+				<input type='submit'>
+	</form>
+{% endblock %}
