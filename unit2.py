@@ -128,3 +128,25 @@ class SignupSuccessHandler(Handler, Validators, Hashers):
                 self.redirect("/unit2/signup")
         else:
             self.redirect("/unit2/signup")
+
+class LoginHandler(Handler, Validators, Hashers):
+    def get(self):
+        self.render('login.html')
+
+    def post(self):
+        username = self.request.get('username')
+        password = self.request.get('password')
+
+        user = User.all().filter("username = ", username).get()
+        if user:
+            if self.check_pw_hash(username, password, user.password):
+                self.response.headers['Content-Type'] = 'text/plain'
+                new_cookie_val = self.hash_str( str(user.key().id()), hashlib.sha256 )
+                self.response.headers.add_header( 'Set-Cookie','user_id=%s;Path=/' % new_cookie_val )
+                self.redirect("/unit2/welcome")
+            else:
+                error = "username and password doesn't match"
+                self.render('login.html', username=username, error=error)
+        else:
+            error = "user does not exist"
+            self.render('login.html', username=username, error=error)
