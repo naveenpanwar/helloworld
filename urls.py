@@ -2,6 +2,7 @@ import webapp2
 import unit1
 import unit2
 import unit3
+import unit4
 
 ###############################################################################
 # url handlers
@@ -17,4 +18,5 @@ app = webapp2.WSGIApplication([
     ('/unit3/blog', unit3.BlogHandler),
     ('/unit3/blog/([0-9]+)', unit3.PostHandler),
     ('/unit3/blog/newpost', unit3.NewPostHandler),
+    ('/unit4', unit4.CookieHandler),
 ], debug=True)

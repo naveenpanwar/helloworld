@@ -1,6 +1,8 @@
 # custom imports
-from handlers import Validators
-from handlers import Handler
+from handlers import Validators, Handler, Hashers
+from models import User
+from google.appengine.ext import db
+import hashlib
 
 ###############################################################################
 #                        Unit 2
@@ -34,7 +36,7 @@ class Rot13Handler(Handler, Validators):
                 rotted+=l
         return self.render( 'rot13form.html', message=self.escape_html(rotted) )
 
-class SignupHandler(Handler, Validators):
+class SignupHandler(Handler, Validators, Hashers):
     def write_form(self, 
                    username = "",
                    username_error = "", 
@@ -68,7 +70,12 @@ class SignupHandler(Handler, Validators):
             status = False
             username_error = "Username is invalid"
         else:
-            username_error = ""
+            user = User.all().filter('username =',username).get()
+            if user:
+                status = False
+                username_error = "Username already exists"
+            else:
+                username_error = ""
 
         if not self.valid_password(password):
             status = False
@@ -97,12 +104,27 @@ class SignupHandler(Handler, Validators):
                                     self.escape_html(email_error),
                                     )
         else:
-            self.redirect("/unit2/welcome?username=" + username)
+            pw_hash = self.make_pw_hash(username, password)
+            user = User( username = username, password = pw_hash)
+            if email:
+                user.email = email
+            user.put()
+            user_id = str(user.key().id())
 
-class SignupSuccessHandler(Handler, Validators):
+            self.response.headers['Content-Type'] = 'text/plain'
+            new_cookie_val = self.hash_str( user_id, hashlib.sha256 )
+            self.response.headers.add_header( 'Set-Cookie','user_id=%s;Path=/' % new_cookie_val )
+            self.redirect("/unit2/welcome")
+
+class SignupSuccessHandler(Handler, Validators, Hashers):
     def get(self):
-        username = self.request.get('username')
-        if self.valid_username(username):
-            self.write("Welcome! "+username+ "! ")
+        cookie_str = self.request.cookies.get('user_id')
+        if cookie_str:
+            cookie_val = self.check_hash_str(cookie_str, hashlib.sha256 )
+            if cookie_val and cookie_val.isdigit():
+                user = User.get_by_id(int(cookie_val))
+                self.render("welcome.html", username=user.username)
+            else:
+                self.redirect("/unit2/signup")
         else:
             self.redirect("/unit2/signup")
