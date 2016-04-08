@@ -14,6 +14,7 @@ app = webapp2.WSGIApplication([
     ('/unit2/rot13', unit2.Rot13Handler),
     ('/unit2/signup', unit2.SignupHandler),
     ('/unit2/login', unit2.LoginHandler),
+    ('/unit2/logout', unit2.LogoutHandler),
     ('/unit2/welcome', unit2.SignupSuccessHandler),
     ('/unit3', unit3.AsciiChanHandler),
     ('/unit3/blog', unit3.BlogHandler),

@@ -150,3 +150,9 @@ class LoginHandler(Handler, Validators, Hashers):
         else:
             error = "user does not exist"
             self.render('login.html', username=username, error=error)
+
+class LogoutHandler(Handler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers.add_header('Set-Cookie', "user_id='';Path=/")
+        self.redirect('/unit2/signup')
