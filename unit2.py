@@ -70,7 +70,7 @@ class SignupHandler(Handler, Validators, Hashers):
             status = False
             username_error = "Username is invalid"
         else:
-            user = User.all().filter('username =',username).get()
+            user = User.by_name(username)
             if user:
                 status = False
                 username_error = "Username already exists"
@@ -104,28 +104,15 @@ class SignupHandler(Handler, Validators, Hashers):
                                     self.escape_html(email_error),
                                     )
         else:
-            pw_hash = self.make_pw_hash(username, password)
-            user = User( username = username, password = pw_hash)
-            if email:
-                user.email = email
+            user = User.register(username, password, email)
             user.put()
-            user_id = str(user.key().id())
-
-            self.response.headers['Content-Type'] = 'text/plain'
-            new_cookie_val = self.hash_str( user_id, hashlib.sha256 )
-            self.response.headers.add_header( 'Set-Cookie','user_id=%s;Path=/' % new_cookie_val )
+            self.set_secure_cookie('user_id', str(user.key().id()) )
             self.redirect("/unit2/welcome")
 
 class SignupSuccessHandler(Handler, Validators, Hashers):
     def get(self):
-        cookie_str = self.request.cookies.get('user_id')
-        if cookie_str:
-            cookie_val = self.check_hash_str(cookie_str, hashlib.sha256 )
-            if cookie_val and cookie_val.isdigit():
-                user = User.get_by_id(int(cookie_val))
-                self.render("welcome.html", username=user.username)
-            else:
-                self.redirect("/unit2/signup")
+        if self.user:
+            self.render("welcome.html", username=self.user.username)
         else:
             self.redirect("/unit2/signup")
 
@@ -137,22 +124,15 @@ class LoginHandler(Handler, Validators, Hashers):
         username = self.request.get('username')
         password = self.request.get('password')
 
-        user = User.all().filter("username = ", username).get()
+        user = User.login(username, password)
         if user:
-            if self.check_pw_hash(username, password, user.password):
-                self.response.headers['Content-Type'] = 'text/plain'
-                new_cookie_val = self.hash_str( str(user.key().id()), hashlib.sha256 )
-                self.response.headers.add_header( 'Set-Cookie','user_id=%s;Path=/' % new_cookie_val )
-                self.redirect("/unit2/welcome")
-            else:
-                error = "username and password doesn't match"
-                self.render('login.html', username=username, error=error)
+            self.login(user)
+            self.redirect("/unit2/welcome")
         else:
-            error = "user does not exist"
+            error = "username and password doesn't match"
             self.render('login.html', username=username, error=error)
 
 class LogoutHandler(Handler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.headers.add_header('Set-Cookie', "user_id='';Path=/")
+        self.logout()
         self.redirect('/unit2/signup')
