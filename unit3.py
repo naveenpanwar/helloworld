@@ -80,7 +80,7 @@ class NewPostHandler(Handler):
         if subject and content:
             p = Post( subject=subject, content=content )
             p.put()
-            self.redirect( '/unit3/blog/%s' % str(p.key().id()) )
+            self.redirect( '/blog/%s' % str(p.key().id()) )
         else:
             error = "we need both subject and content"
             self.render_new_post(subject, content, error )

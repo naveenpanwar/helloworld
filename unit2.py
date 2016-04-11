@@ -107,14 +107,14 @@ class SignupHandler(Handler, Validators, Hashers):
             user = User.register(username, password, email)
             user.put()
             self.set_secure_cookie('user_id', str(user.key().id()) )
-            self.redirect("/unit2/welcome")
+            self.redirect("/blog/welcome")
 
 class SignupSuccessHandler(Handler, Validators, Hashers):
     def get(self):
         if self.user:
             self.render("welcome.html", username=self.user.username)
         else:
-            self.redirect("/unit2/signup")
+            self.redirect("/blog/signup")
 
 class LoginHandler(Handler, Validators, Hashers):
     def get(self):
@@ -127,7 +127,7 @@ class LoginHandler(Handler, Validators, Hashers):
         user = User.login(username, password)
         if user:
             self.login(user)
-            self.redirect("/unit2/welcome")
+            self.redirect("/blog/welcome")
         else:
             error = "username and password doesn't match"
             self.render('login.html', username=username, error=error)
@@ -135,4 +135,4 @@ class LoginHandler(Handler, Validators, Hashers):
 class LogoutHandler(Handler):
     def get(self):
         self.logout()
-        self.redirect('/unit2/signup')
+        self.redirect('/blog/signup')
