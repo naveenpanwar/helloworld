@@ -9,8 +9,20 @@ from models import Art, Post
 ###############################################################################
 class AsciiChanHandler(Handler):
     def render_ascii(self, title="", art="", error=""):
-        arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
-        self.render('asciichan.html', title=title, art=art, error=error, arts=arts)
+        arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC LIMIT 10")
+        
+        #prevent from running database query multiple times
+        arts = list(arts)
+        
+        # generate a list of points
+        points = filter(None, (a.coords for a in arts))
+
+        #generate an image url
+        img_url = None
+        if points:
+            img_url = self.gmaps_img(points)
+
+        self.render('asciichan.html', title=title, art=art, error=error, arts=arts, img_url=img_url )
 
     def get(self):
         self.render_ascii()
@@ -21,6 +33,12 @@ class AsciiChanHandler(Handler):
 
         if title and art:
             a = Art( title=title, art=art )
+            # lookup coordinates from import
+            # if they have coordinates add them to the mapping
+            # to get the ip self.request.remote_addr
+            geopt = self.get_coords('4.2.2.2')
+            if geopt:
+                a.coords = geopt
             a.put()
             self.redirect('/unit3')
         else:
@@ -30,17 +48,23 @@ class AsciiChanHandler(Handler):
 class BlogHandler(Handler):
     def get(self):
         posts = Post.all().order('-created').run(limit=10)
-        self.render('blog_front.html', posts = posts )
+        if self.format == 'html':
+            self.render('blog_front.html', posts = posts )
+        else:
+            self.render_json([p.as_dict() for p in posts])
 
 class PostHandler(Handler):
     def get(self, post_id):
-        key = db.Key.from_path('Post', int(post_id))
-        post = db.get(key)
-
+        post = Post.get_by_id( int(post_id))
+        
         if not post:
             self.error(404)
             return
-        self.render('post_permalink.html', post=post)
+
+        if self.format == 'html':
+            self.render('post_permalink.html', post=post)
+        else:
+            self.render_json(post.as_dict())
 
 class NewPostHandler(Handler):
     def render_new_post(self, subject="", content="", error=""):

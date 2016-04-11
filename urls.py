@@ -3,6 +3,7 @@ import unit1
 import unit2
 import unit3
 import unit4
+import unit5
 
 ###############################################################################
 # url handlers
@@ -17,8 +18,9 @@ app = webapp2.WSGIApplication([
     ('/unit2/logout', unit2.LogoutHandler),
     ('/unit2/welcome', unit2.SignupSuccessHandler),
     ('/unit3', unit3.AsciiChanHandler),
-    ('/unit3/blog', unit3.BlogHandler),
-    ('/unit3/blog/([0-9]+)', unit3.PostHandler),
+    ('/unit3/blog/?(?:.json)?', unit3.BlogHandler),
+    ('/unit3/blog/([0-9]+)(?:.json)?', unit3.PostHandler),
     ('/unit3/blog/newpost', unit3.NewPostHandler),
     ('/unit4', unit4.CookieHandler),
+    ('/unit5', unit5.APIHandler),
 ], debug=True)

@@ -4,6 +4,9 @@ import re
 import jinja2
 import os
 import hashlib
+import urllib2
+import json
+from google.appengine.ext import db
 
 from models import User
 from hashes import Hashers
@@ -80,6 +83,33 @@ def render_str(template, **params):
     return t.render(params)
 
 class Handler(webapp2.RequestHandler, Hashers):
+    
+    IP_URL = "http://ip-api.com/json/"
+    
+    def get_coords(self, ip):
+        url = self.IP_URL + ip
+        content = None 
+        try:
+            content = urllib2.urlopen(url).read()
+        except URLError:
+            return
+        if content:
+            # parse the json and find coordinates
+            js = json.loads(content)
+            lat = js['lat']
+            lon = js['lon']
+            return db.GeoPt(lat, lon)
+    
+    GMAPS_URL = "http://maps.googleapis.com/maps/api/staticmap?size=380x263&sensor=false&"
+    def gmaps_img(self, points):
+        markers = '&'.join('markers=%s,%s' % (p.lat, p.lon) for p in points)
+        return self.GMAPS_URL + markers
+
+    def render_json(self, d):
+        json_txt = json.dumps(d)
+        self.response.headers['Content-Type'] = 'application/json; charset=UTF-8'
+        self.write(json_txt)
+
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
@@ -109,3 +139,8 @@ class Handler(webapp2.RequestHandler, Hashers):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.get_by_id(int(uid))
+
+        if self.request.url.endswith('.json'):
+            self.format = 'json'
+        else:
+            self.format = 'html'

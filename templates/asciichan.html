@@ -19,6 +19,9 @@
 		<input type="submit">
 	</form>
 	<br>
+	{% if img_url %}
+		<img src="{{ img_url }}">
+	{% endif %}
 	<hr>
 	{% for a in arts %}
 	<div class='art'>
