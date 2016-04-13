@@ -1,14 +1,18 @@
 import webapp2
+from datetime import datetime, timedelta
+import logging
 import cgi
 import re
 import jinja2
 import os
 import hashlib
 import urllib2
+from urllib2 import URLError
 import json
 from google.appengine.ext import db
+from google.appengine.api import memcache
 
-from models import User
+from models import User, Post
 from hashes import Hashers
 
 
@@ -83,9 +87,52 @@ def render_str(template, **params):
     return t.render(params)
 
 class Handler(webapp2.RequestHandler, Hashers):
+    def age_set(self, key, value):
+        save_time = datetime.utcnow()
+        memcache.set(key, (value, save_time))
+
+    def age_get(self, key):
+        r = memcache.get(key)
+        if r:
+            val, save_time = r
+            age = (datetime.utcnow() - save_time).total_seconds()
+        else:
+            val, age = None, 0
+        return val, age
+
+    def add_post(self, post):
+        post.put()
+        self.top_posts(update=True)
+        return str(post.key().id())
+    
+    def top_posts(self, update=False):
+        key = 'main_page_posts'
+        q = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC LIMIT 20")
+        posts, age = self.age_get(key)
+        if posts is None or update:
+            #prevent from running database query multiple times
+            posts = list(q)
+            self.age_set(key, posts)
+        return posts, age
+
+    def age_str(self, age):
+        s = "Queried %s seconds ago"
+        age = int(age)
+        if age == 1:
+            s = s.replace("seconds", "second")
+        return s % age
+
+    def top_arts(self, update=False):
+        key = 'top'
+        arts = memcache.get(key)
+        if arts is None or update:
+            logging.error("DB Query")
+            arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC LIMIT 10")
+            #prevent from running database query multiple times
+            memcache.set(key, arts)
+        return arts 
     
     IP_URL = "http://ip-api.com/json/"
-    
     def get_coords(self, ip):
         url = self.IP_URL + ip
         content = None 

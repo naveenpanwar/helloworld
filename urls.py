@@ -23,4 +23,5 @@ app = webapp2.WSGIApplication([
     ('/blog/newpost', unit3.NewPostHandler),
     ('/unit4', unit4.CookieHandler),
     ('/unit5', unit5.APIHandler),
+    ('/blog/flush', unit5.FlushCache),
 ], debug=True)

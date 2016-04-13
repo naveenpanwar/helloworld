@@ -1,4 +1,6 @@
 from google.appengine.ext import db
+import time
+from google.appengine.api import memcache
 
 # custom imports
 from handlers import Handler
@@ -9,11 +11,7 @@ from models import Art, Post
 ###############################################################################
 class AsciiChanHandler(Handler):
     def render_ascii(self, title="", art="", error=""):
-        arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC LIMIT 10")
-        
-        #prevent from running database query multiple times
-        arts = list(arts)
-        
+        arts = self.top_arts()
         # generate a list of points
         points = filter(None, (a.coords for a in arts))
 
@@ -40,6 +38,7 @@ class AsciiChanHandler(Handler):
             if geopt:
                 a.coords = geopt
             a.put()
+            self.top_arts(True)
             self.redirect('/unit3')
         else:
             error = "we need both title and art"
@@ -47,22 +46,29 @@ class AsciiChanHandler(Handler):
 
 class BlogHandler(Handler):
     def get(self):
-        posts = Post.all().order('-created').run(limit=10)
+        posts, time_ago = self.top_posts()
         if self.format == 'html':
-            self.render('blog_front.html', posts = posts )
+            self.render('blog_front.html', posts = posts, time_ago = self.age_str(time_ago) )
         else:
             self.render_json([p.as_dict() for p in posts])
 
 class PostHandler(Handler):
     def get(self, post_id):
-        post = Post.get_by_id( int(post_id))
+        post_key = post_id
+        post, query_time = self.age_get( post_key )
+        
+        if not post:
+            key = db.Key.from_path('Post', int(post_id))
+            post = db.get(key)
+            self.age_set(post_key, post)
+            query_time = 0
         
         if not post:
             self.error(404)
             return
 
         if self.format == 'html':
-            self.render('post_permalink.html', post=post)
+            self.render( 'post_permalink.html', post=post, query_time=self.age_str(query_time) )
         else:
             self.render_json(post.as_dict())
 
@@ -72,15 +78,15 @@ class NewPostHandler(Handler):
 
     def get(self):
         self.render_new_post()
-
+    
     def post(self):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
         if subject and content:
             p = Post( subject=subject, content=content )
-            p.put()
-            self.redirect( '/blog/%s' % str(p.key().id()) )
+            p_id = self.add_post(p)
+            self.redirect( '/blog/%s' % p_id )
         else:
             error = "we need both subject and content"
             self.render_new_post(subject, content, error )
